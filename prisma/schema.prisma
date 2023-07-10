@@ -15,8 +15,6 @@ model User {
   updatedAt  DateTime    @updatedAt
   Enrollment Enrollment?
   Session    Session[]
-
-  @@map("users")
 }
 
 model Session {
@@ -26,8 +24,6 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   User      User     @relation(fields: [userId], references: [id])
-
-  @@map("sessions")
 }
 
 model Event {
@@ -39,8 +35,6 @@ model Event {
   endsAt             DateTime
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-
-  @@map("events")
 }
 
 model Enrollment {
@@ -55,8 +49,6 @@ model Enrollment {
   User      User     @relation(fields: [userId], references: [id])
   Address   Address?
   Ticket    Ticket[]
-
-  @@map("enrollments")
 }
 
 model Address {
@@ -72,8 +64,6 @@ model Address {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   Enrollment    Enrollment @relation(fields: [enrollmentId], references: [id])
-
-  @@map("address")
 }
 
 model TicketType {
@@ -85,8 +75,6 @@ model TicketType {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   Ticket        Ticket[]
-
-  @@map("tickettypes")
 }
 
 model Ticket {
@@ -99,8 +87,6 @@ model Ticket {
   Enrollment   Enrollment   @relation(fields: [enrollmentId], references: [id])
   TicketType   TicketType   @relation(fields: [ticketTypeId], references: [id])
   Payment      Payment[]
-
-  @@map("tickets")
 }
 
 model Payment {
@@ -112,8 +98,6 @@ model Payment {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   Ticket         Ticket   @relation(fields: [ticketId], references: [id])
-
-  @@map("payments")
 }
 
 enum TicketStatus {
