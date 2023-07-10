@@ -1,46 +1,14 @@
 import { prisma } from "@/config";
 import { paymentBody } from "@/protocols";
 import { wrongUser } from "@/services/payments-service/error";
+import dayjs from "dayjs"
 
 async function getPayments(ticketId: number, uId: number){
-    const result = await prisma.payment.findFirst({
+    const checkUser = await prisma.ticket.findFirst({
         where: {
-            ticketId
+            id: ticketId
         },
-        include: {
-            Ticket: {
-                include: {
-                    Enrollment: {
-                        select: {
-                            userId: true
-                        }
-                    }
-                },
-                select: {
-                    enrollmentId: true
-                }
-            }
-        }
-    })
-
-    if(result.Ticket.Enrollment.userId !== uId) throw wrongUser()
-
-    return {result}
-}
-
-async function postPayments(body: paymentBody, uId: number){
-    const {ticketId} = body
-
-    const checkTicketId = await prisma.ticket.findFirst({
-        where: {
-            id: body.ticketId
-        },
-        include: {
-            TicketType: {
-                select: {
-                    price: true
-                }
-            },
+        select: {
             Enrollment: {
                 select: {
                     userId: true
@@ -49,16 +17,39 @@ async function postPayments(body: paymentBody, uId: number){
         }
     })
 
-    if(!checkTicketId) return checkTicketId
+    const result =  await prisma.payment.findFirst({
+        where: {
+            ticketId
+        }
+    })
 
-    if(checkTicketId.Enrollment.userId !== uId) return uId
+    const data = {checkUser, result}
+
+    return data
+}
+
+async function postPayments(body: paymentBody, uId: number){
+
+    const checkTicketId = await prisma.ticket.findFirst({
+        where: {
+            id: body.ticketId
+        },
+        select: {
+            TicketType: {
+                select: {price: true}
+            },
+            Enrollment: {
+                select: {userId: true}
+            }
+        }
+    })
 
     const result = await prisma.payment.create({
         data: {
             ticketId: body.ticketId,
             value: checkTicketId.TicketType.price,
             cardIssuer: body.cardData.issuer,
-            cardLastDigits: body.cardData.number.toString()
+            cardLastDigits: `${body.cardData.number}`.slice(-4)
         }
     })
 
@@ -67,12 +58,13 @@ async function postPayments(body: paymentBody, uId: number){
             status: 'PAID'
         },
         where: {
-            id: ticketId
+            id: body.ticketId
         }
     })
 
-    console.log(result)
-    return result
+    const data = {result, checkTicketId}
+
+    return data
 }
 
 const paymentsRepository = {

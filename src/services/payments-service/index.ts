@@ -1,23 +1,33 @@
 import paymentsRepository from "@/repositories/payments-repository";
 import { emptyQuery, wrongUser } from "./error";
-import { notFoundError } from "@/errors";
+import { notFoundError, unauthorizedError } from "@/errors";
 import { paymentBody } from "@/protocols";
+import { getTicketsByUser } from "@/controllers";
+import ticketsRepository from "@/repositories/tickets-repository";
 
 async function getPayments(ticketId: number, uId: number){
     if(!ticketId) throw emptyQuery()
 
+    const checkTicket = await ticketsRepository.getTickets(ticketId)
+    if(!checkTicket) throw notFoundError()
+
     const result = await paymentsRepository.getPayments(ticketId, uId)
-    if(!result.result) throw notFoundError()
+
+    if(result.checkUser.Enrollment.userId !== uId) throw wrongUser()
 
     return result
 }
 
 async function postPayments(body: paymentBody, uId: number){
-    const result = await paymentsRepository.postPayments(body, uId)
-    if(result === uId) throw wrongUser()
-    if(!result) throw notFoundError()
+    if(!body.cardData || !body.ticketId) throw emptyQuery()
 
-    return result
+    const checkTicket = await ticketsRepository.getTickets(body.ticketId)
+    if(!checkTicket) throw notFoundError()
+
+    const checkUser = await getPayments(body.ticketId, uId)
+    if(checkUser.checkUser.Enrollment.userId != uId) throw wrongUser()
+
+    return await paymentsRepository.postPayments(body, uId)
 }
 
 const paymentsService = {

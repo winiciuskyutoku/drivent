@@ -53,6 +53,14 @@ async function getTicketsByUserRepository(userId: number){
     return result
 }
 
+async function getTickets(ticketId: number){
+    return await prisma.ticket.findFirst({
+        where: {
+            id: ticketId
+        }
+    })
+}
+
 async function postTickets(id: number, uId: number){
     const enrollmentId = await prisma.enrollment.findFirst({
         where: {
@@ -101,7 +109,8 @@ async function postTickets(id: number, uId: number){
 const ticketsRepository = {
     getTicketsTypesRepository,
     getTicketsByUserRepository,
-    postTickets
+    postTickets,
+    getTickets
 }
 
 export default ticketsRepository
