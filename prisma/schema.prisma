@@ -13,7 +13,7 @@ model User {
   password   String      @db.VarChar(255)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
-  Enrollment Enrollment?
+  Enrollment Enrollment[]
   Session    Session[]
 
   @@map("users")
@@ -53,7 +53,7 @@ model Enrollment {
   updatedAt DateTime @updatedAt
   birthday  DateTime
   User      User     @relation(fields: [userId], references: [id])
-  Address   Address?
+  Address   Address[]
   Ticket    Ticket[]
 
   @@map("enrollments")
